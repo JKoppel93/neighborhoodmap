@@ -34,7 +34,26 @@ html, body {
   background: linear-gradient(to bottom, #0062ad 1%,#003c75 100%);
 }
 
-#panel #location {
+#panel #locations {
   color: grey;
-  padding: 5px;
+  float: left;
+}
+
+#locations ul {
+  color: grey;
+  padding: 0;
+  font-size: 24px;
+}
+
+#locations button {
+  color: white;
+  border: none;
+}
+
+#show {
+background: linear-gradient(to bottom, #00ad62 1%,#00753c 100%);
+}
+
+#remove {
+  background: linear-gradient(to bottom, #ad0000 1%,#750000 100%);
 }

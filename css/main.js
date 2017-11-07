@@ -61,11 +61,26 @@ export default StyleSheet.create({
         "color": "white",
         "background": "linear-gradient(to bottom, #0062ad 1%,#003c75 100%)"
     },
-    "panel location": {
+    "panel locations": {
         "color": "grey",
-        "paddingTop": 5,
-        "paddingRight": 5,
-        "paddingBottom": 5,
-        "paddingLeft": 5
+        "float": "left"
+    },
+    "locations ul": {
+        "color": "grey",
+        "paddingTop": 0,
+        "paddingRight": 0,
+        "paddingBottom": 0,
+        "paddingLeft": 0,
+        "fontSize": 24
+    },
+    "locations button": {
+        "color": "white",
+        "border": "none"
+    },
+    "show": {
+        "background": "linear-gradient(to bottom, #00ad62 1%,#00753c 100%)"
+    },
+    "remove": {
+        "background": "linear-gradient(to bottom, #ad0000 1%,#750000 100%)"
     }
 });

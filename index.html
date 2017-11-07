@@ -7,18 +7,25 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
 </head>
  <body>
-   <div id="map" class="col-md-10"></div>
-   <div id="panel" class="col-md-2">
+   <div id="map" class="col-md-8"></div>
+   <div id="panel" class="col-md-4">
     <h2>Spotswood Locations</h2>
     <input id="address" type="textbox" value="Lookup location" class="col-md-9">
     <input id="submit" type="button" value="Filter" class="col-md-3">
-    <ul id="locations" data-bind="foreach: locations">
-      <li data-bind="attr: { 'id': $index() }, text: title, click: setMark">
-      </li>
-      <button data-bind="click: setMark">Show</button>
-      <button data-bind="click: removeMark">Remove</button>
-    </ul>
-   </div>
+    <div class="row" id="locations" data-bind="foreach: locations">
+      <div class="col-md-8">
+        <ul data-bind="attr: { 'id': $index() }, text: title, click: setMark">
+        </ul>
+      </div>
+      <div class="col-md-2">
+          <button type="button" id="show" data-bind="click: setMark">Show</button>
+        </div>
+        <div class-"col-md-2">
+            <button type="button" id="remove"  data-bind="click: removeMark">Remove</button>
+        </div>
+      </div>
+
+    </div>
    <script async defer src="js\main.js"></script>
    <script async defer
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCUP0AwDXlaMWhMJX54WLgF-FsWA1CJO-Q&v=3&callback=initMap">
