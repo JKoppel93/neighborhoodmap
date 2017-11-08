@@ -50,10 +50,10 @@ html, body {
   border: none;
 }
 
-#show {
+.show {
 background: linear-gradient(to bottom, #00ad62 1%,#00753c 100%);
 }
 
-#remove {
+.remove {
   background: linear-gradient(to bottom, #ad0000 1%,#750000 100%);
 }

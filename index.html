@@ -18,10 +18,10 @@
         </ul>
       </div>
       <div class="col-md-2">
-          <button type="button" id="show" data-bind="click: setMark">Show</button>
+          <button type="button" class="show" data-bind="click: setMark, attr: { 'id': 'show'+$index()}">Show</button>
         </div>
         <div class-"col-md-2">
-            <button type="button" id="remove"  data-bind="click: removeMark">Remove</button>
+            <button type="button" class="remove" data-bind="click: removeMark, attr: { 'id': 'remove'+$index()}">Remove</button>
         </div>
       </div>
 

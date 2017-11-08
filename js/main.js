@@ -11,7 +11,7 @@ function initMap() {
   });
 
   document.getElementById('submit').addEventListener('click', function() {
-    geocodeAddress(geocoder, map);
+    filterLocations();
   });
   ko.applyBindings(myViewModel);
 }
@@ -80,7 +80,6 @@ function populateInfoWindow(geocoder, marker, infowindow) {
   if (infowindow.marker != marker) {
     infowindow.marker = marker;
     infowindow.address = geocodeLatLng(marker.position,geocoder,map,infowindow);
-    infowindow.setContent('<div>'+infowindow.address+'</div>');
     infowindow.open(map, marker);
     // Make sure the marker property is cleared if the infowindow is closed.
     infowindow.addListener('closeclick', function() {
@@ -99,3 +98,43 @@ function geocodeLatLng(marker, geocoder, map, infowindow) {
     }
   });
 }
+
+function filterLocations(){
+  var address = document.getElementById('address').value;
+  // Declare variables
+    var filter, div, ul, a, show, remove;
+    filter = address.toUpperCase();
+    div = document.getElementById("locations");
+    ul = div.getElementsByTagName('ul');
+    show = document.getElementsByClassName("show");
+    remove = document.getElementsByClassName("remove");
+
+    // Loop through all list items, and hide those who don't match the search query
+    for (var i = 0; i < ul.length; i++) {
+        a = ul[i].textContent;
+        if (a.toUpperCase().indexOf(filter) > -1) {
+            ul[i].style.display = "";
+            show[i].style.display = "";
+            remove[i].style.display = "";
+        } else {
+            ul[i].style.display = "none";
+            show[i].style.display = "none";
+            remove[i].style.display = "none";
+        }
+    }
+}
+
+function geocodeAddress(geocoder, resultsMap) {
+        var address = document.getElementById('address').value;
+        geocoder.geocode({'address': address}, function(results, status) {
+          if (status === 'OK') {
+            resultsMap.setCenter(results[0].geometry.location);
+            var marker = new google.maps.Marker({
+              map: resultsMap,
+              position: results[0].geometry.location
+            });
+          } else {
+            alert('Geocode was not successful for the following reason: ' + status);
+          }
+        });
+      }
