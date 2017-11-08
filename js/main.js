@@ -1,7 +1,6 @@
 var map;
 
 function initMap() {
-  var geocoder = new google.maps.Geocoder();
 
   map = new google.maps.Map(document.getElementById('map'), {
     zoom: 15,
@@ -11,8 +10,6 @@ function initMap() {
     }
   });
 
-  var largeInfowindow = new google.maps.InfoWindow();
-
   document.getElementById('submit').addEventListener('click', function() {
     geocodeAddress(geocoder, map);
   });
@@ -20,6 +17,10 @@ function initMap() {
 }
 
 var myViewModel = function() {
+
+  var geocoder = new google.maps.Geocoder();
+
+  var largeInfowindow = new google.maps.InfoWindow();
 
   var markers = [];
 
@@ -53,6 +54,9 @@ var myViewModel = function() {
       for (let i=0; i<markers.length;i++) {
         if (this.title == markers[i].title) {
           markers[i].setMap(map);
+          markers[i].addListener('click', function() {
+            populateInfoWindow(geocoder,this, largeInfowindow);
+          });
         }
         bounds.extend(markers[i].position);
       }
@@ -68,21 +72,30 @@ var myViewModel = function() {
         }
       }
     };
+
 };
 
-function geocodeAddress(geocoder, resultsMap) {
-  var address = document.getElementById('address').value;
-  geocoder.geocode({
-    'address': address
-  }, function(results, status) {
+function populateInfoWindow(geocoder, marker, infowindow) {
+  // Check to make sure the infowindow is not already opened on this marker.
+  if (infowindow.marker != marker) {
+    infowindow.marker = marker;
+    infowindow.address = geocodeLatLng(marker.position,geocoder,map,infowindow);
+    infowindow.setContent('<div>'+infowindow.address+'</div>');
+    infowindow.open(map, marker);
+    // Make sure the marker property is cleared if the infowindow is closed.
+    infowindow.addListener('closeclick', function() {
+      infowindow.marker = null;
+    });
+  }
+}
+
+function geocodeLatLng(marker, geocoder, map, infowindow) {
+  var latlng = marker;
+  geocoder.geocode({'location': latlng}, function(results, status) {
     if (status === 'OK') {
-      resultsMap.setCenter(results[0].geometry.location);
-      var marker = new google.maps.Marker({
-        map: resultsMap,
-        position: results[0].geometry.location
-      });
-    } else {
-      alert('Geocode was not successful for the following reason: ' + status);
+      if (results[0]) {
+        infowindow.setContent(results[0].formatted_address);
+      }
     }
   });
 }

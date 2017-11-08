@@ -71,7 +71,7 @@ export default StyleSheet.create({
         "paddingRight": 0,
         "paddingBottom": 0,
         "paddingLeft": 0,
-        "fontSize": 24
+        "fontSize": 28
     },
     "locations button": {
         "color": "white",
