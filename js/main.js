@@ -73,6 +73,12 @@ var myViewModel = function() {
       }
     };
 
+    togglePanel = function() {
+      $("#panel").toggleClass("collapsed col-md-4");
+      $("#map").toggleClass("col-md-12 col-md-8");
+
+    }
+
 };
 
 function populateInfoWindow(geocoder, marker, infowindow) {

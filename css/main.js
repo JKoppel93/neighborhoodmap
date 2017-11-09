@@ -38,7 +38,7 @@ export default StyleSheet.create({
         "paddingTop": 5,
         "paddingRight": 5,
         "paddingBottom": 5,
-        "paddingLeft": 10,
+        "paddingLeft": 30,
         "fontFamily": "'Roboto', 'sans-serif'",
         "lineHeight": 30
     },
@@ -82,5 +82,19 @@ export default StyleSheet.create({
     },
     "remove": {
         "background": "linear-gradient(to bottom, #ad0000 1%,#750000 100%)"
+    },
+    "collapsed": {
+        "display": "none"
+    },
+    "row-main": {
+        "overflowX": "hidden"
+    },
+    "hamburger": {
+        "fontSize": 32,
+        "textDecoration": "none",
+        "color": "white"
+    },
+    "header": {
+        "background": "linear-gradient(to bottom, #0062ad 1%,#003c75 100%)"
     }
 });
