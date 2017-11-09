@@ -31,6 +31,7 @@ var myViewModel = function() {
       {title: 'Taverna Pizza', location: {lat: 40.4066, lng: -74.3861}},
       {title: "Ryan's Pub", location: {lat: 40.3806, lng: -74.3883}},
       {title: 'RiteAid', location: {lat: 40.3962, lng: -74.3859}},
+      {title: "MJ's Pizza Bar & Grill", location: {lat: 40.3968, lng: -74.3862}},
     ]);
 
     for (let i=0; i<locations().length; i++) {
