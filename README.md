@@ -30,3 +30,10 @@
 A map will be displayed using Google Map's API. Use the panel icon to toggle the side panel, containing a list of locations. Here you can filter
 the locations using a search query, or add the locations to the map via the toggle buttons (or location name on smaller resolutions). Clicking
 a marker on the map will display an infowindow, containing the marker's address.
+
+== CREDITS ==
+
+*Author - Jacob Koppel
+*Modified code used from Google Maps API documentation and previous Udacity lessons. 
+*filterLocations function in main.js modified from Stack Overflow.
+*Bootstrap, Knockout, and jQuery for backend framework to project
