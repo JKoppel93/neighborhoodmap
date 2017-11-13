@@ -1,8 +1,8 @@
-var map;
+var map; // map variable
 
-function initMap() {
+function initMap() { // initialize map function
 
-  map = new google.maps.Map(document.getElementById('map'), {
+  map = new google.maps.Map(document.getElementById('map'), { // will create new map instance, center map on Spotswood, NJ with zoom level 15
     zoom: 15,
     center: {
       lat: 40.3918,
@@ -10,21 +10,21 @@ function initMap() {
     }
   });
 
-  document.getElementById('submit').addEventListener('click', function() {
+  document.getElementById('submit').addEventListener('click', function() { // filter marker locations based off search query
     filterLocations();
   });
-  ko.applyBindings(myViewModel);
+  ko.applyBindings(myViewModel); // apply knockout bindings taken from myViewModel
 }
 
-var myViewModel = function() {
+var myViewModel = function() { // contains knockout bindings
 
-  var geocoder = new google.maps.Geocoder();
+  var geocoder = new google.maps.Geocoder(); // used for geocoding google map API
 
-  var largeInfowindow = new google.maps.InfoWindow();
+  var largeInfowindow = new google.maps.InfoWindow(); // new infowindow instance
 
-  var markers = [];
+  var markers = []; // array of location markers
 
-    locations = ko.observableArray([
+    locations = ko.observableArray([ // a knockout observableArray containing locations used for HTML bindings
       {title: 'Spotswood High School', location: {lat: 40.3986, lng: -74.3888}},
       {title: "Dunkin' Donuts", location: {lat: 40.3943, lng: -74.3870}},
       {title: 'ShopRite', location: {lat: 40.407455, lng: -74.385594}},
@@ -34,7 +34,7 @@ var myViewModel = function() {
       {title: "MJ's Pizza Bar & Grill", location: {lat: 40.3968, lng: -74.3862}},
     ]);
 
-    for (let i=0; i<locations().length; i++) {
+    for (let i=0; i<locations().length; i++) { // loop will create Google Marker variables and push them into the markers array
       var position = locations()[i].location;
       var title = locations()[i].title;
       marker =
@@ -49,40 +49,40 @@ var myViewModel = function() {
      markers[i].setMap(null);
     }
 
-    setMark = function() {
+    setMark = function() { // function used to display a marker onto the map
       var bounds = new google.maps.LatLngBounds();
       // Extend the boundaries of the map for each marker and display the marker
       for (let i=0; i<markers.length;i++) {
-        if (this.title == markers[i].title) {
-          markers[i].setMap(map);
-          markers[i].addListener('click', function() {
-            populateInfoWindow(geocoder,this, largeInfowindow);
+        if (this.title == markers[i].title) { // if knockout click: event's title is equal to the title of the index marker's title in the array
+          markers[i].setMap(map); // display marker
+          markers[i].addListener('click', function() { // clicking marker will
+            populateInfoWindow(geocoder,this, largeInfowindow); // open infowindow
           });
         }
-        bounds.extend(markers[i].position);
+        bounds.extend(markers[i].position); // extend map to encapsulate markers
       }
 
-      map.initialZoom = true;
+      map.initialZoom = true; // set zoom level to intial value
       map.fitBounds(bounds);
     };
 
-    removeMark = function() {
+    removeMark = function() { // function used ot remove a marker from the map
       for (let i=0; i<markers.length;i++) {
         if (this.title == markers[i].title) {
-          markers[i].setMap(null);
+          markers[i].setMap(null); // removes marker from map
         }
       }
     };
 
-    togglePanel = function() {
+    togglePanel = function() { // function used to toggle panel display on side
       $("#panel").toggleClass("collapsed col-md-4");
       $("#map").toggleClass("col-md-12 col-md-8");
 
-    }
+    };
 
 };
 
-function populateInfoWindow(geocoder, marker, infowindow) {
+function populateInfoWindow(geocoder, marker, infowindow) { // function used to create infowindow
   // Check to make sure the infowindow is not already opened on this marker.
   if (infowindow.marker != marker) {
     infowindow.marker = marker;
@@ -95,7 +95,7 @@ function populateInfoWindow(geocoder, marker, infowindow) {
   }
 }
 
-function geocodeLatLng(marker, geocoder, map, infowindow) {
+function geocodeLatLng(marker, geocoder, map, infowindow) { // function used to convert latlng to string address
   var latlng = marker;
   geocoder.geocode({'location': latlng}, function(results, status) {
     if (status === 'OK') {
@@ -106,42 +106,27 @@ function geocodeLatLng(marker, geocoder, map, infowindow) {
   });
 }
 
-function filterLocations(){
+function filterLocations(){ // function used to take search query and apply it to a filter for the marker locations
   var address = document.getElementById('address').value;
   // Declare variables
     var filter, div, ul, a, show, remove;
-    filter = address.toUpperCase();
-    div = document.getElementById("locations");
-    ul = div.getElementsByTagName('ul');
-    show = document.getElementsByClassName("show");
-    remove = document.getElementsByClassName("remove");
+    filter = address.toUpperCase(); // search query converted to all caps to ensure stability
+    div = document.getElementById("locations"); // grab #locations div
+    ul = div.getElementsByTagName('ul'); // grab all ul inside #locations
+    show = document.getElementsByClassName("show"); // grab #show button
+    remove = document.getElementsByClassName("remove"); // grab #remove button
 
     // Loop through all list items, and hide those who don't match the search query
     for (var i = 0; i < ul.length; i++) {
         a = ul[i].textContent;
-        if (a.toUpperCase().indexOf(filter) > -1) {
+        if (a.toUpperCase().indexOf(filter) > -1) { // keep location in list display
             ul[i].style.display = "";
-            show[i].style.display = "";
-            remove[i].style.display = "";
-        } else {
+            show[i].style.display = ""; // along with
+            remove[i].style.display = ""; // buttons
+        } else { // remove location in list display
             ul[i].style.display = "none";
             show[i].style.display = "none";
             remove[i].style.display = "none";
         }
     }
 }
-
-function geocodeAddress(geocoder, resultsMap) {
-        var address = document.getElementById('address').value;
-        geocoder.geocode({'address': address}, function(results, status) {
-          if (status === 'OK') {
-            resultsMap.setCenter(results[0].geometry.location);
-            var marker = new google.maps.Marker({
-              map: resultsMap,
-              position: results[0].geometry.location
-            });
-          } else {
-            alert('Geocode was not successful for the following reason: ' + status);
-          }
-        });
-      }
