@@ -1,4 +1,5 @@
 var map; // map variable
+var query;
 
 function initMap() { // initialize map function
 
@@ -10,19 +11,17 @@ function initMap() { // initialize map function
     }
   });
 
-  document.getElementById('submit').addEventListener('click', function() { // filter marker locations based off search query
-    filterLocations();
-  });
-  ko.applyBindings(myViewModel); // apply knockout bindings taken from myViewModel
+  ko.applyBindings(MyViewModel); // apply knockout bindings taken from MyViewModel
 }
 
-var myViewModel = function() { // contains knockout bindings
+var MyViewModel = function() { // contains knockout bindings
 
   var geocoder = new google.maps.Geocoder(); // used for geocoding google map API
 
   var largeInfowindow = new google.maps.InfoWindow(); // new infowindow instance
 
   var markers = []; // array of location markers
+  query = ko.observable('');
 
   locations = ko.observableArray([ // a knockout observableArray containing locations used for HTML bindings
     {
@@ -87,7 +86,7 @@ var myViewModel = function() { // contains knockout bindings
         id: i
       });
     markers.push(marker);
-    markers[i].setMap(null);
+    markers[i].setMap(map);
   }
 
   setMark = function() { // function used to display a marker onto the map
@@ -121,6 +120,32 @@ var myViewModel = function() { // contains knockout bindings
 
   };
 
+  filterLocations = function() { // function used to take search query and apply it to a filter for the marker locations
+    // var address = this.value;
+    // Declare variables
+    var filter, div, ul, a, show, remove;
+    filter = query().toUpperCase(); // search query converted to all caps to ensure stability
+    div = document.getElementById("locations"); // grab #locations div
+    ul = div.getElementsByTagName('ul'); // grab all ul inside #locations
+    show = document.getElementsByClassName("show"); // grab #show button
+    remove = document.getElementsByClassName("remove"); // grab #remove button
+
+    // Loop through all list items, and hide those who don't match the search query
+    for (var i = 0; i < ul.length; i++) {
+      a = ul[i].textContent;
+      if (a.toUpperCase().indexOf(filter) > -1) { // keep location in list display
+        ul[i].style.display = "";
+        show[i].style.display = ""; // along with
+        remove[i].style.display = ""; // buttons
+        markers[i].setMap(map); // show marker
+      } else { // remove location in list display
+        ul[i].style.display = "none";
+        show[i].style.display = "none";
+        remove[i].style.display = "none";
+        markers[i].setMap(null); // remove marker
+      }
+    }
+  };
 };
 
 function populateInfoWindow(geocoder, marker, infowindow) { // function used to create infowindow
@@ -149,27 +174,9 @@ function geocodeLatLng(marker, geocoder, map, infowindow) { // function used to 
   });
 }
 
-function filterLocations() { // function used to take search query and apply it to a filter for the marker locations
-  var address = document.getElementById('address').value;
-  // Declare variables
-  var filter, div, ul, a, show, remove;
-  filter = address.toUpperCase(); // search query converted to all caps to ensure stability
-  div = document.getElementById("locations"); // grab #locations div
-  ul = div.getElementsByTagName('ul'); // grab all ul inside #locations
-  show = document.getElementsByClassName("show"); // grab #show button
-  remove = document.getElementsByClassName("remove"); // grab #remove button
-
-  // Loop through all list items, and hide those who don't match the search query
-  for (var i = 0; i < ul.length; i++) {
-    a = ul[i].textContent;
-    if (a.toUpperCase().indexOf(filter) > -1) { // keep location in list display
-      ul[i].style.display = "";
-      show[i].style.display = ""; // along with
-      remove[i].style.display = ""; // buttons
-    } else { // remove location in list display
-      ul[i].style.display = "none";
-      show[i].style.display = "none";
-      remove[i].style.display = "none";
-    }
-  }
-}
+/**
+ * Error callback for GMap API request
+ */
+var googleError = function()  {
+  initMap(); // retry displaying map
+};

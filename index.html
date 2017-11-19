@@ -1,6 +1,7 @@
 <html>
 
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="js\jquery-3.2.1.min.js"></script>
   <script src="js\knockout.min.js"></script>
   <link rel="stylesheet" type="text/css" href="css\main.css">
@@ -9,14 +10,17 @@
 </head>
 
 <body>
+<main>
   <div class="row" id="row-main">
     <div id="header" class=col-md-12>
       <a href="" id="hamburger" data-bind="click: togglePanel">&#9776</a>
     </div>
     <div id="panel" class="collapsed">
       <h2>Spotswood Locations</h2>
-      <input id="address" type="textbox" data-bind="O" value="" class="col-md-9">
-      <input id="submit" type="button" value="Filter" class="col-md-3">
+      <form data-bind="submit: filterLocations">
+        <input id="address" data-bind="textInput: query" placeholder="Filter locations..." class="col-md-9">
+        <input id="submit" type="button" value="Filter" class="col-md-3" data-bind="click: filterLocations">
+      </form>
       <div class="row" id="locations" data-bind="foreach: locations">
         <div class="col-md-8" id="list">
           <ul data-bind="attr: { 'id': $index() }, text: title, click: setMark">
@@ -29,12 +33,13 @@
           <button type="button" class="remove" data-bind="click: removeMark, attr: { 'id': 'remove'+$index()}">Remove</button>
         </div>
       </div>
-
     </div>
     <div id="map" class="col-md-12"></div>
   </div>
-  <script async defer src="js\main.js"></script>
-  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCUP0AwDXlaMWhMJX54WLgF-FsWA1CJO-Q&v=3&callback=initMap">
+</main>
+
+  <script src="js\main.js"></script>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCUP0AwDXlaMWhMJX54WLgF-FsWA1CJO-Q&v=3&callback=initMap" onerror="googleError()">
   </script>
 </body>
 

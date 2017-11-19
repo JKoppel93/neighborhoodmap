@@ -78,8 +78,8 @@ html, body {
 }
 
 @media only screen and (max-device-width: 1100px) {
-    {
-    /* display for small resolutions/tablets */
+     /*display for small resolutions/tablets */
+
     #locations button {
       display: none;
     }
