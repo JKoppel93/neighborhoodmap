@@ -2,6 +2,8 @@ var map; // map variable
 var query; // search query for filtering locations
 var filteredLocations = ko.observableArray(); // array of temporary locations
 var markers = []; // array of location markers
+var temp = ''; // for ajax calls
+var temp2 = ''; // for ajax calls
 
 function initMap() { // initialize map function
 
@@ -90,7 +92,7 @@ var MyViewModel = function() { // contains knockout bindings
     },
   ]);
 
-
+// MARKERS //
 
   for (let i = 0; i < locations().length; i++) { // loop will create Google Marker variables and push them into the markers array
     var position = locations()[i].location;
@@ -152,6 +154,8 @@ var MyViewModel = function() { // contains knockout bindings
     }
   };
 
+  // PANEL //
+
   togglePanel = function() { // function used to toggle panel display on side
     $("#panel").toggleClass("collapsed col-md-4");
     $("#map").toggleClass("col-md-12 col-md-8");
@@ -180,11 +184,13 @@ var MyViewModel = function() { // contains knockout bindings
   };
 };
 
+// INFO WINDOW //
+
 function populateInfoWindow(geocoder, marker, infowindow) { // function used to create infowindow
   // Check to make sure the infowindow is not already opened on this marker.
   if (infowindow.marker != marker) {
     infowindow.marker = marker;
-    geocodeLatLng(marker.position, geocoder, map, infowindow, marker.title);
+    geocodeLatLng(marker.position, geocoder, map, infowindow, marker.title,marker);
     infowindow.open(map, marker);
     // Make sure the marker property is cleared if the infowindow is closed.
     infowindow.addListener('closeclick', function() {
@@ -198,8 +204,10 @@ function closeInfowWindow(geocoder, marker, infowindow) { // function used to cl
   infowindow.close();
 }
 
-function geocodeLatLng(marker, geocoder, map, infowindow, title) { // function used to convert latlng to string address
-  var latlng = marker;
+function geocodeLatLng(position, geocoder, map, infowindow, title, marker) { // function used to convert latlng to string address
+  var latlng = position;
+  getFourSquareID(latlng.lat(), latlng.lng(), title, marker); // gets foursquareID
+  getFourSquareInfo(marker.fsID,infowindow,marker); // gets foursquareInfo (in this case I will be getting the shortURL)
   geocoder.geocode({
     'location': latlng
   }, function(results, status) {
@@ -212,17 +220,73 @@ function geocodeLatLng(marker, geocoder, map, infowindow, title) { // function u
           '<div>' + // infowWindow string
           results[0].formatted_address +
           '<br>' +
-          "<img src='" + streetviewURL + "'>" +
-          '</div>';
+          "<img src='" + streetviewURL + "'>" + "<br><a href='"+marker.fsText+
+          "'>"+marker.fsText+'</a></div>';
         infowindow.setContent(contentString);
       }
     }
   });
 }
 
+// FOUR SQUARE //
+function getFourSquareID(lat, lng, title, marker) {
+  var apiURL = 'https://api.foursquare.com/v2/venues/';
+  var latlng = lat + ',' + lng;
+  var CLIENT_ID = 'ZDJME44NMAR2EQ4DOVZ4Y3ALRJEUWCZC0RBKXQ2KBE0N4EGX';
+  var CLIENT_SECRET = "UDCLN50BPLGYKMPYS2UZJGXGWOR0NYN5R00STZJPCUIBUFFA";
+  var version = 20161016;
+  var intent = 'checkin';
+  var id;
+
+  var foursquareURL = apiURL + 'search?v=' + version + '&ll=' + latlng + '&intent=' + intent + '&client_id=' + CLIENT_ID + '&client_secret=' + CLIENT_SECRET;
+
+  $.ajax({
+    url: foursquareURL,
+    success: function(data) {
+      for (var i = 0; i < data.response.venues.length; i++) {
+        if (data.response.venues[i].name.toUpperCase() == title.toUpperCase()) { // if ajax response venue is equal to marker title
+          getAjax(data.response.venues[i].id); // used to store into global variable temp
+        } else { // get first result
+          getAjax(data.response.venues[0].id);
+        }
+      }
+    }
+  });
+  marker.fsID = temp; // marker's foursquareID
+}
+
+function getFourSquareInfo(id, infowindow, marker) {
+  var apiURL = 'https://api.foursquare.com/v2/venues/';
+  var CLIENT_ID = 'ZDJME44NMAR2EQ4DOVZ4Y3ALRJEUWCZC0RBKXQ2KBE0N4EGX';
+  var CLIENT_SECRET = "UDCLN50BPLGYKMPYS2UZJGXGWOR0NYN5R00STZJPCUIBUFFA";
+  var version = 201310168;
+  var intent = 'browse';
+
+  var foursquareURL = apiURL + id + '?v=' + version + '&intent=' + intent + '&client_id=' + CLIENT_ID + '&client_secret=' + CLIENT_SECRET;
+
+  $.ajax({
+    url: foursquareURL,
+    success: function(data) {
+      console.log(data);
+      getAjax2(data.response.venue.shortUrl); // used to store into global variable temp2
+    }
+  });
+  marker.fsText = temp2; // marker's foursquareText (in this case being the shortURL)
+}
+
+// AJAX //
+
+function getAjax(obj) { // ajax calls to bring to global scope
+  temp = obj;
+}
+
+function getAjax2(obj) { // ajax calls to bring to global scope
+  temp2 = obj;
+}
+
 /**
  * Error callback for GMap API request
  */
 var googleError = function() {
-  initMap(); // retry displaying map
+  console.alert("Error loading Google Maps API");
 };
