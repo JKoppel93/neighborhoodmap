@@ -27,6 +27,16 @@ var MyViewModel = function() { // contains knockout bindings
 
   query = ko.observable('');
 
+  this.filterQuery = ko.computed(() => { // credits to Sang for this live filter method
+    if (!this.query()) {
+      return this.filteredLocations();
+    }else {
+      return ko.utils.arrayFilter(this.filterLocations(),(location) => {
+        return location.title.toUpperCase().indexOf(this.query().toUpperCase()) !== -1;
+      });
+    }
+  });
+
   locations = ko.observableArray([ // a knockout observableArray containing locations used for HTML bindings
     {
       title: 'Spotswood High School',
