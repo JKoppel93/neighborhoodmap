@@ -159,7 +159,7 @@ function populateInfoWindow(geocoder, marker, infowindow) { // function used to 
   // Check to make sure the infowindow is not already opened on this marker.
   if (infowindow.marker != marker) {
     infowindow.marker = marker;
-    geocodeLatLng(marker.position, geocoder, map, infowindow);
+    geocodeLatLng(marker.position, geocoder, map, infowindow,marker.title);
     infowindow.open(map, marker);
     // Make sure the marker property is cleared if the infowindow is closed.
     infowindow.addListener('closeclick', function() {
@@ -173,7 +173,7 @@ function closeInfowWindow(geocoder, marker, infowindow) { // function used to cl
   infowindow.close();
 }
 
-function geocodeLatLng(marker, geocoder, map, infowindow) { // function used to convert latlng to string address
+function geocodeLatLng(marker, geocoder, map, infowindow,title) { // function used to convert latlng to string address
   var latlng = marker;
   geocoder.geocode({
     'location': latlng
@@ -181,7 +181,10 @@ function geocodeLatLng(marker, geocoder, map, infowindow) { // function used to 
     if (status === 'OK') {
       if (results[0]) {
         var streetviewURL = 'https://maps.googleapis.com/maps/api/streetview?size=320x240&location=' + latlng.lat() + "," + latlng.lng() + '&key=AIzaSyCUP0AwDXlaMWhMJX54WLgF-FsWA1CJO-Q&v=3'; // variable to obtain streetview
-        var contentString = '<div>' + // infowWindow string
+        var contentString = '<h2>'+
+        title+
+        '</h2>'+
+        '<div>' + // infowWindow string
           results[0].formatted_address +
           '<br>' +
           "<img src='" + streetviewURL + "'>" +
