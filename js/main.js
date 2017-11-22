@@ -23,6 +23,8 @@ var MyViewModel = function() { // contains knockout bindings
   var largeInfowindow = new google.maps.InfoWindow(); // new infowindow instance
 
   var visible = true; // for filteredLocations
+  var init = -1; // for init purposes
+
   query = ko.observable('');
 
   locations = ko.observableArray([ // a knockout observableArray containing locations used for HTML bindings
@@ -96,6 +98,7 @@ var MyViewModel = function() { // contains knockout bindings
     });
     markers.push(marker);
     markers[i].setMap(map);
+    markers[i].init = init;
   }
 
   setMark = function() { // function used to display a marker onto the map
@@ -103,7 +106,13 @@ var MyViewModel = function() { // contains knockout bindings
     // Extend the boundaries of the map for each marker and display the marker
     for (let i = 0; i < markers.length; i++) {
       if (this.title == markers[i].title) { // if knockout click: event's title is equal to the title of the index marker's title in the array
-        toggleMarker(markers[i]);
+        if (markers[i].init !== -1) {
+          toggleMarker(markers[i]);
+        } else {
+          markers[i].setAnimation(google.maps.Animation.BOUNCE); // reanimate
+          populateInfoWindow(geocoder, markers[i], largeInfowindow); // open infowindow
+          markers[i].init = 0;
+        }
       }
       bounds.extend(markers[i].position); // extend map to encapsulate markers
     }
@@ -121,7 +130,7 @@ var MyViewModel = function() { // contains knockout bindings
         closeInfowWindow(geocoder, mark, largeInfowindow);
       } else if (x === false) {
         mark.setVisible(true); // set marker visible boolean to true, used for conditionals
-        mark.setAnimation(google.maps.Animation.DROP); // reanimate
+        mark.setAnimation(google.maps.Animation.BOUNCE); // reanimate
         populateInfoWindow(geocoder, mark, largeInfowindow); // open infowindow
       }
     }
@@ -159,7 +168,7 @@ function populateInfoWindow(geocoder, marker, infowindow) { // function used to 
   // Check to make sure the infowindow is not already opened on this marker.
   if (infowindow.marker != marker) {
     infowindow.marker = marker;
-    geocodeLatLng(marker.position, geocoder, map, infowindow,marker.title);
+    geocodeLatLng(marker.position, geocoder, map, infowindow, marker.title);
     infowindow.open(map, marker);
     // Make sure the marker property is cleared if the infowindow is closed.
     infowindow.addListener('closeclick', function() {
@@ -173,7 +182,7 @@ function closeInfowWindow(geocoder, marker, infowindow) { // function used to cl
   infowindow.close();
 }
 
-function geocodeLatLng(marker, geocoder, map, infowindow,title) { // function used to convert latlng to string address
+function geocodeLatLng(marker, geocoder, map, infowindow, title) { // function used to convert latlng to string address
   var latlng = marker;
   geocoder.geocode({
     'location': latlng
@@ -181,10 +190,10 @@ function geocodeLatLng(marker, geocoder, map, infowindow,title) { // function us
     if (status === 'OK') {
       if (results[0]) {
         var streetviewURL = 'https://maps.googleapis.com/maps/api/streetview?size=320x240&location=' + latlng.lat() + "," + latlng.lng() + '&key=AIzaSyCUP0AwDXlaMWhMJX54WLgF-FsWA1CJO-Q&v=3'; // variable to obtain streetview
-        var contentString = '<h2>'+
-        title+
-        '</h2>'+
-        '<div>' + // infowWindow string
+        var contentString = '<h2>' +
+          title +
+          '</h2>' +
+          '<div>' + // infowWindow string
           results[0].formatted_address +
           '<br>' +
           "<img src='" + streetviewURL + "'>" +
