@@ -45,17 +45,13 @@ html, body {
   font-size: 28px;
 }
 
-#locations button {
+.list-item:hover {
   color: white;
-  border: none;
+  cursor: pointer;
 }
 
-.show {
-  background: linear-gradient(to bottom, #00ad62 1%, #00753c 100%);
-}
-
-.remove {
-  background: linear-gradient(to bottom, #ad0000 1%, #750000 100%);
+.list-item:active {
+  color: blue;
 }
 
 .collapsed {
@@ -80,13 +76,6 @@ html, body {
 @media only screen and (max-device-width: 1100px) {
      /*display for small resolutions/tablets */
 
-    #locations button {
-      display: none;
-    }
-    #list ul:hover {
-      color: white;
-      text-decoration: underline;
-    }
     #list ul {
       font-size: 18px;
     }
@@ -96,13 +85,6 @@ html, body {
     #panel {
       overflow: scroll;
       height: 300px;
-    }
-    #locations button {
-      display: none;
-    }
-    #list ul:hover {
-      color: white;
-      text-decoration: underline;
     }
     #list ul {
       font-size: 20px;

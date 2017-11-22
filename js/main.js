@@ -1,5 +1,7 @@
 var map; // map variable
-var query;
+var query; // search query for filtering locations
+var filteredLocations = ko.observableArray(); // array of temporary locations
+var markers = []; // array of location markers
 
 function initMap() { // initialize map function
 
@@ -20,7 +22,7 @@ var MyViewModel = function() { // contains knockout bindings
 
   var largeInfowindow = new google.maps.InfoWindow(); // new infowindow instance
 
-  var markers = []; // array of location markers
+  var visible = true; // for filteredLocations
   query = ko.observable('');
 
   locations = ko.observableArray([ // a knockout observableArray containing locations used for HTML bindings
@@ -75,9 +77,13 @@ var MyViewModel = function() { // contains knockout bindings
     },
   ]);
 
+
+
   for (let i = 0; i < locations().length; i++) { // loop will create Google Marker variables and push them into the markers array
     var position = locations()[i].location;
     var title = locations()[i].title;
+    filteredLocations()[i] = locations()[i]; // locations array is stored in a temporary array filteredLocations for filter manipulation
+    filteredLocations()[i].isVisible = ko.observable(visible); // filtered locations in panel are set to visible on init
     marker =
       new google.maps.Marker({
         position: position,
@@ -85,6 +91,9 @@ var MyViewModel = function() { // contains knockout bindings
         animation: google.maps.Animation.DROP,
         id: i
       });
+    google.maps.event.addListener(marker, 'click', function() { // add click listener for each marker present on the map
+      populateInfoWindow(geocoder, markers[i], largeInfowindow); // which will then bring up the infowWindow
+    });
     markers.push(marker);
     markers[i].setMap(map);
   }
@@ -94,10 +103,7 @@ var MyViewModel = function() { // contains knockout bindings
     // Extend the boundaries of the map for each marker and display the marker
     for (let i = 0; i < markers.length; i++) {
       if (this.title == markers[i].title) { // if knockout click: event's title is equal to the title of the index marker's title in the array
-        markers[i].setMap(map); // display marker
-        markers[i].addListener('click', function() { // clicking marker will
-          populateInfoWindow(geocoder, this, largeInfowindow); // open infowindow
-        });
+        toggleMarker(markers[i]);
       }
       bounds.extend(markers[i].position); // extend map to encapsulate markers
     }
@@ -106,10 +112,17 @@ var MyViewModel = function() { // contains knockout bindings
     map.fitBounds(bounds);
   };
 
-  removeMark = function() { // function used ot remove a marker from the map
+  toggleMarker = function(mark) { // used to toggle between visible and invisible markers when clicking on location text
     for (let i = 0; i < markers.length; i++) {
-      if (this.title == markers[i].title) {
-        markers[i].setMap(null); // removes marker from map
+      var x = mark.visible; // initial marker visible boolean value
+      if (x === true) {
+        mark.setVisible(false); // set marker visible boolean to false, used for conditionals
+        mark.setAnimation(null); // remove animation
+        closeInfowWindow(geocoder, mark, largeInfowindow);
+      } else if (x === false) {
+        mark.setVisible(true); // set marker visible boolean to true, used for conditionals
+        mark.setAnimation(google.maps.Animation.DROP); // reanimate
+        populateInfoWindow(geocoder, mark, largeInfowindow); // open infowindow
       }
     }
   };
@@ -123,26 +136,20 @@ var MyViewModel = function() { // contains knockout bindings
   filterLocations = function() { // function used to take search query and apply it to a filter for the marker locations
     // var address = this.value;
     // Declare variables
-    var filter, div, ul, a, show, remove;
+    var filter, a;
     filter = query().toUpperCase(); // search query converted to all caps to ensure stability
-    div = document.getElementById("locations"); // grab #locations div
-    ul = div.getElementsByTagName('ul'); // grab all ul inside #locations
-    show = document.getElementsByClassName("show"); // grab #show button
-    remove = document.getElementsByClassName("remove"); // grab #remove button
 
     // Loop through all list items, and hide those who don't match the search query
-    for (var i = 0; i < ul.length; i++) {
-      a = ul[i].textContent;
+    for (i = 0; i < locations().length; i++) {
+      a = filteredLocations()[i].title;
       if (a.toUpperCase().indexOf(filter) > -1) { // keep location in list display
-        ul[i].style.display = "";
-        show[i].style.display = ""; // along with
-        remove[i].style.display = ""; // buttons
-        markers[i].setMap(map); // show marker
+        filteredLocations()[i].isVisible(true); // if filtered locations are visible in panel
+        markers[i].setVisible(true); // show marker
+        markers[i].setAnimation(google.maps.Animation.DROP); // reanimate
       } else { // remove location in list display
-        ul[i].style.display = "none";
-        show[i].style.display = "none";
-        remove[i].style.display = "none";
-        markers[i].setMap(null); // remove marker
+        filteredLocations()[i].isVisible(false); // if filtered locations are not visible in panel
+        markers[i].setVisible(false); // remove marker
+        markers[i].setAnimation(null); // remove animation
       }
     }
   };
@@ -152,13 +159,18 @@ function populateInfoWindow(geocoder, marker, infowindow) { // function used to 
   // Check to make sure the infowindow is not already opened on this marker.
   if (infowindow.marker != marker) {
     infowindow.marker = marker;
-    infowindow.address = geocodeLatLng(marker.position, geocoder, map, infowindow);
+    geocodeLatLng(marker.position, geocoder, map, infowindow);
     infowindow.open(map, marker);
     // Make sure the marker property is cleared if the infowindow is closed.
     infowindow.addListener('closeclick', function() {
       infowindow.marker = null;
     });
   }
+}
+
+function closeInfowWindow(geocoder, marker, infowindow) { // function used to close infowindow, used if location text is clicked
+  infowindow.marker = null;
+  infowindow.close();
 }
 
 function geocodeLatLng(marker, geocoder, map, infowindow) { // function used to convert latlng to string address
@@ -168,7 +180,13 @@ function geocodeLatLng(marker, geocoder, map, infowindow) { // function used to 
   }, function(results, status) {
     if (status === 'OK') {
       if (results[0]) {
-        infowindow.setContent(results[0].formatted_address);
+        var streetviewURL = 'https://maps.googleapis.com/maps/api/streetview?size=320x240&location=' + latlng.lat() + "," + latlng.lng() + '&key=AIzaSyCUP0AwDXlaMWhMJX54WLgF-FsWA1CJO-Q&v=3'; // variable to obtain streetview
+        var contentString = '<div>' + // infowWindow string
+          results[0].formatted_address +
+          '<br>' +
+          "<img src='" + streetviewURL + "'>" +
+          '</div>';
+        infowindow.setContent(contentString);
       }
     }
   });
@@ -177,6 +195,6 @@ function geocodeLatLng(marker, geocoder, map, infowindow) { // function used to 
 /**
  * Error callback for GMap API request
  */
-var googleError = function()  {
+var googleError = function() {
   initMap(); // retry displaying map
 };

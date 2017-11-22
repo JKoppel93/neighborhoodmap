@@ -73,15 +73,12 @@ export default StyleSheet.create({
         "paddingLeft": 0,
         "fontSize": 28
     },
-    "locations button": {
+    "list-item:hover": {
         "color": "white",
-        "border": "none"
+        "cursor": "pointer"
     },
-    "show": {
-        "background": "linear-gradient(to bottom, #00ad62 1%, #00753c 100%)"
-    },
-    "remove": {
-        "background": "linear-gradient(to bottom, #ad0000 1%, #750000 100%)"
+    "list-item:active": {
+        "color": "blue"
     },
     "collapsed": {
         "display": "none"
