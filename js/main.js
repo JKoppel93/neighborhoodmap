@@ -23,6 +23,7 @@ var MyViewModel = function() { // contains knockout bindings
   var largeInfowindow = new google.maps.InfoWindow(); // new infowindow instance
 
   var visible = true; // for filteredLocations
+  var active = false; // for animations
   var init = -1; // for init purposes
 
   query = ko.observable('');
@@ -30,8 +31,8 @@ var MyViewModel = function() { // contains knockout bindings
   this.filterQuery = ko.computed(() => { // credits to Sang for this live filter method
     if (!this.query()) {
       return this.filteredLocations();
-    }else {
-      return ko.utils.arrayFilter(this.filterLocations(),(location) => {
+    } else {
+      return ko.utils.arrayFilter(this.filterLocations(), (location) => {
         return location.title.toUpperCase().indexOf(this.query().toUpperCase()) !== -1;
       });
     }
@@ -109,19 +110,26 @@ var MyViewModel = function() { // contains knockout bindings
     markers.push(marker);
     markers[i].setMap(map);
     markers[i].init = init;
+    markers[i].active = active;
   }
 
   setMark = function() { // function used to display a marker onto the map
     var bounds = new google.maps.LatLngBounds();
     // Extend the boundaries of the map for each marker and display the marker
     for (let i = 0; i < markers.length; i++) {
+      if (markers[i].active === true) { // if a previous active marker is present
+        markers[i].setAnimation(null); // set previous marker animation to null
+        markers[i].active = false; // set its active value to false
+      }
       if (this.title == markers[i].title) { // if knockout click: event's title is equal to the title of the index marker's title in the array
         if (markers[i].init !== -1) {
           toggleMarker(markers[i]);
+          markers[i].active = true; // set marker active value to true
         } else {
           markers[i].setAnimation(google.maps.Animation.BOUNCE); // reanimate
           populateInfoWindow(geocoder, markers[i], largeInfowindow); // open infowindow
-          markers[i].init = 0;
+          markers[i].init = 0; // remove initialization check
+          markers[i].active = true; // set marker active value to true
         }
       }
       bounds.extend(markers[i].position); // extend map to encapsulate markers
@@ -132,17 +140,15 @@ var MyViewModel = function() { // contains knockout bindings
   };
 
   toggleMarker = function(mark) { // used to toggle between visible and invisible markers when clicking on location text
-    for (let i = 0; i < markers.length; i++) {
-      var x = mark.visible; // initial marker visible boolean value
-      if (x === true) {
-        mark.setVisible(false); // set marker visible boolean to false, used for conditionals
-        mark.setAnimation(null); // remove animation
-        closeInfowWindow(geocoder, mark, largeInfowindow);
-      } else if (x === false) {
-        mark.setVisible(true); // set marker visible boolean to true, used for conditionals
-        mark.setAnimation(google.maps.Animation.BOUNCE); // reanimate
-        populateInfoWindow(geocoder, mark, largeInfowindow); // open infowindow
-      }
+    var x = mark.visible; // initial marker visible boolean value
+    if (x === true) {
+      mark.setVisible(false); // set marker visible boolean to false, used for conditionals
+      mark.setAnimation(null); // remove animation
+      closeInfowWindow(geocoder, mark, largeInfowindow);
+    } else if (x === false) {
+      mark.setVisible(true); // set marker visible boolean to true, used for conditionals
+      mark.setAnimation(google.maps.Animation.BOUNCE); // reanimate
+      populateInfoWindow(geocoder, mark, largeInfowindow); // open infowindow
     }
   };
 
