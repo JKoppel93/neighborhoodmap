@@ -212,6 +212,7 @@ function closeInfowWindow(geocoder, marker, infowindow) { // function used to cl
 
 function geocodeLatLng(position, geocoder, map, infowindow, title, marker) { // function used to convert latlng to string address
   var latlng = position;
+  var contentString;
   getFourSquareID(latlng.lat(), latlng.lng(), title, marker); // gets foursquareID
   getFourSquareInfo(marker.fsID, infowindow, marker); // gets foursquareInfo (in this case I will be getting the shortURL)
   geocoder.geocode({
@@ -220,17 +221,16 @@ function geocodeLatLng(position, geocoder, map, infowindow, title, marker) { // 
     if (status === 'OK') {
       if (results[0]) {
         var streetviewURL = 'https://maps.googleapis.com/maps/api/streetview?size=320x240&location=' + latlng.lat() + "," + latlng.lng() + '&key=AIzaSyCUP0AwDXlaMWhMJX54WLgF-FsWA1CJO-Q&v=3'; // variable to obtain streetview
-        var contentString = '<h2>' +
+        contentString = '<h2>' +
           title +
           '</h2>' +
           '<div>' + // infowWindow string
           results[0].formatted_address +
           '<br>' +
-          "<img src='" + streetviewURL + "'>" + "<br><a href='" + marker.fsText +
-          "'>" + marker.fsText + '</a></div>';
-        infowindow.setContent(contentString);
+          "<img src='" + streetviewURL + "'>" + '<br>' + marker.fsText + '</div>';
       }
     }
+    infowindow.setContent(contentString);
   });
 }
 
@@ -256,6 +256,10 @@ function getFourSquareID(lat, lng, title, marker) {
           getAjax(data.response.venues[0].id);
         }
       }
+    },
+    error: function(jqXHR, timeout, errorThrown) {
+      console.log(jqXHR);
+      console.log(errorThrown);
     }
   });
   marker.fsID = temp; // marker's foursquareID
@@ -274,9 +278,22 @@ function getFourSquareInfo(id, infowindow, marker) {
     url: foursquareURL,
     success: function(data) {
       getAjax2(data.response.venue.shortUrl); // used to store into global variable temp2
+    },
+    error: function(jqXHR, e) {
+      if (jqXHR.status == 404) // if shortURL cannot be found
+        alert('FourSquare location could not found. [404]');
+      else
+        alert('Unspecified error\n' + jqXHR.responseText);
     }
   });
-  marker.fsText = temp2; // marker's foursquareText (in this case being the shortURL)
+  if (temp2 === "") { // if temp2 is empty
+    temp2 = "FourSquare location not found." // give message that a location was not found
+    marker.fsText = temp2;
+    temp2 = ""; // in case infoWindow is applied twice to the same marker
+  } else { // apply an anchor link to the shortURL
+    marker.fsText = "<a href='" + temp2 +
+      "'>" + temp2 + '</a>';
+  }
 }
 
 // AJAX //
