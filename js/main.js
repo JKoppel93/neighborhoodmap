@@ -92,11 +92,12 @@ var MyViewModel = function() { // contains knockout bindings
     },
   ]);
 
-// MARKERS //
+  // MARKERS //
 
   for (let i = 0; i < locations().length; i++) { // loop will create Google Marker variables and push them into the markers array
     var position = locations()[i].location;
     var title = locations()[i].title;
+    var previousMarker;
     filteredLocations()[i] = locations()[i]; // locations array is stored in a temporary array filteredLocations for filter manipulation
     filteredLocations()[i].isVisible = ko.observable(visible); // filtered locations in panel are set to visible on init
     marker =
@@ -108,6 +109,11 @@ var MyViewModel = function() { // contains knockout bindings
       });
     google.maps.event.addListener(marker, 'click', function() { // add click listener for each marker present on the map
       populateInfoWindow(geocoder, markers[i], largeInfowindow); // which will then bring up the infowWindow
+      markers[i].setAnimation(google.maps.Animation.BOUNCE); // animate active marker
+      var currentMarker = markers[i]; // double click protection
+      if (previousMarker && previousMarker !== currentMarker) // if a previousMarker is present or active marker is double clicked
+        previousMarker.setAnimation(null); // deactivate the marker animation
+      previousMarker = markers[i]; // store current marker into previousMarker for future clicks
     });
     markers.push(marker);
     markers[i].setMap(map);
@@ -190,7 +196,7 @@ function populateInfoWindow(geocoder, marker, infowindow) { // function used to 
   // Check to make sure the infowindow is not already opened on this marker.
   if (infowindow.marker != marker) {
     infowindow.marker = marker;
-    geocodeLatLng(marker.position, geocoder, map, infowindow, marker.title,marker);
+    geocodeLatLng(marker.position, geocoder, map, infowindow, marker.title, marker);
     infowindow.open(map, marker);
     // Make sure the marker property is cleared if the infowindow is closed.
     infowindow.addListener('closeclick', function() {
@@ -207,7 +213,7 @@ function closeInfowWindow(geocoder, marker, infowindow) { // function used to cl
 function geocodeLatLng(position, geocoder, map, infowindow, title, marker) { // function used to convert latlng to string address
   var latlng = position;
   getFourSquareID(latlng.lat(), latlng.lng(), title, marker); // gets foursquareID
-  getFourSquareInfo(marker.fsID,infowindow,marker); // gets foursquareInfo (in this case I will be getting the shortURL)
+  getFourSquareInfo(marker.fsID, infowindow, marker); // gets foursquareInfo (in this case I will be getting the shortURL)
   geocoder.geocode({
     'location': latlng
   }, function(results, status) {
@@ -220,8 +226,8 @@ function geocodeLatLng(position, geocoder, map, infowindow, title, marker) { // 
           '<div>' + // infowWindow string
           results[0].formatted_address +
           '<br>' +
-          "<img src='" + streetviewURL + "'>" + "<br><a href='"+marker.fsText+
-          "'>"+marker.fsText+'</a></div>';
+          "<img src='" + streetviewURL + "'>" + "<br><a href='" + marker.fsText +
+          "'>" + marker.fsText + '</a></div>';
         infowindow.setContent(contentString);
       }
     }
@@ -267,7 +273,6 @@ function getFourSquareInfo(id, infowindow, marker) {
   $.ajax({
     url: foursquareURL,
     success: function(data) {
-      console.log(data);
       getAjax2(data.response.venue.shortUrl); // used to store into global variable temp2
     }
   });
@@ -288,5 +293,5 @@ function getAjax2(obj) { // ajax calls to bring to global scope
  * Error callback for GMap API request
  */
 var googleError = function() {
-  console.alert("Error loading Google Maps API");
+  alert("Error loading Google Maps API");
 };
