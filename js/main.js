@@ -30,16 +30,6 @@ var MyViewModel = function() { // contains knockout bindings
 
   query = ko.observable('');
 
-  this.filterQuery = ko.computed(() => { // credits to Sang for this live filter method
-    if (!this.query()) {
-      return this.filteredLocations();
-    } else {
-      return ko.utils.arrayFilter(this.filterLocations(), (location) => {
-        return location.title.toUpperCase().indexOf(this.query().toUpperCase()) !== -1;
-      });
-    }
-  });
-
   locations = ko.observableArray([ // a knockout observableArray containing locations used for HTML bindings
     {
       title: 'Spotswood High School',
@@ -188,6 +178,21 @@ var MyViewModel = function() { // contains knockout bindings
       }
     }
   };
+
+  this.filterQuery = ko.computed(() => { // credits to Sang for this live filter method
+    if (this.query().length <= 0) {
+      for (var i=0; i < locations().length; i++) {
+        filteredLocations()[i].isVisible(true); // if filtered locations are visible in panel
+        markers[i].setVisible(true); // show marker
+        markers[i].setAnimation(google.maps.Animation.DROP); // reanimate
+      }
+
+    } else {
+      return ko.utils.arrayFilter(this.filterLocations(), (location) => {
+        return location.title.toUpperCase().indexOf(this.query().toUpperCase()) !== -1;
+      });
+    }
+  });
 };
 
 // INFO WINDOW //
