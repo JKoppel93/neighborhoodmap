@@ -275,18 +275,30 @@ function getFourSquare(lat, lng, title, marker) {
       function handler(jqXHR, e) {
         if (jqXHR.status == 404) // if shortURL cannot be found
           alert('FourSquare location could not found. [404]');
+        else if (jqXHR.status == 400)
+          alert('A request error was made. Try clicking again to resolve. [400]');
+        else if (jqXHR.status == 401 || jqXHR.status == 403)
+          alert('You are not authorized to make this request. [' + jqXHR.status + ']');
+        else if (jqXHR.status == 408)
+          alert('The request timed out. The request took too long to connect. [408]');
         else
           alert('Unspecified error\n' + jqXHR.responseText);
-        }
-      });
+      }
+    });
   }).fail(function(data) {
     function handler(jqXHR, e) {
       if (jqXHR.status == 404) // if shortURL cannot be found
         alert('FourSquare location could not found. [404]');
+      else if (jqXHR.status == 400)
+        alert('A request error was made. Try clicking again to resolve. [400]');
+      else if (jqXHR.status == 401 || jqXHR.status == 403)
+        alert('You are not authorized to make this request. [' + jqXHR.status + ']');
+      else if (jqXHR.status == 408)
+        alert('The request timed out. The request took too long to connect. [408]');
       else
         alert('Unspecified error\n' + jqXHR.responseText);
-      }
-    });
+    }
+  });
 }
 /**
  * Error callback for GMap API request
