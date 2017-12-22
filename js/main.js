@@ -2,8 +2,6 @@ var map; // map variable
 var query; // search query for filtering locations
 var filteredLocations = ko.observableArray(); // array of temporary locations
 var markers = []; // array of location markers
-var temp = ''; // for ajax calls
-var temp2 = ''; // for ajax calls
 
 function initMap() { // initialize map function
 
@@ -181,7 +179,7 @@ var MyViewModel = function() { // contains knockout bindings
 
   this.filterQuery = ko.computed(() => { // credits to Sang for this live filter method
     if (this.query().length <= 0) {
-      for (var i=0; i < locations().length; i++) {
+      for (var i = 0; i < locations().length; i++) {
         filteredLocations()[i].isVisible(true); // if filtered locations are visible in panel
         markers[i].setVisible(true); // show marker
         markers[i].setAnimation(google.maps.Animation.DROP); // reanimate
@@ -218,8 +216,7 @@ function closeInfowWindow(geocoder, marker, infowindow) { // function used to cl
 function geocodeLatLng(position, geocoder, map, infowindow, title, marker) { // function used to convert latlng to string address
   var latlng = position;
   var contentString;
-  getFourSquareID(latlng.lat(), latlng.lng(), title, marker); // gets foursquareID
-  getFourSquareInfo(marker.fsID, infowindow, marker); // gets foursquareInfo (in this case I will be getting the shortURL)
+  getFourSquare(latlng.lat(), latlng.lng(), title, marker); // gets foursquareID
   geocoder.geocode({
     'location': latlng
   }, function(results, status) {
@@ -240,77 +237,57 @@ function geocodeLatLng(position, geocoder, map, infowindow, title, marker) { // 
 }
 
 // FOUR SQUARE //
-function getFourSquareID(lat, lng, title, marker) {
+function getFourSquare(lat, lng, title, marker) {
   var apiURL = 'https://api.foursquare.com/v2/venues/';
   var latlng = lat + ',' + lng;
   var CLIENT_ID = 'ZDJME44NMAR2EQ4DOVZ4Y3ALRJEUWCZC0RBKXQ2KBE0N4EGX';
   var CLIENT_SECRET = "UDCLN50BPLGYKMPYS2UZJGXGWOR0NYN5R00STZJPCUIBUFFA";
   var version = 20161016;
   var intent = 'checkin';
-  var id;
 
   var foursquareURL = apiURL + 'search?v=' + version + '&ll=' + latlng + '&intent=' + intent + '&client_id=' + CLIENT_ID + '&client_secret=' + CLIENT_SECRET;
 
   $.ajax({
-    url: foursquareURL,
-    success: function(data) {
-      for (var i = 0; i < data.response.venues.length; i++) {
-        if (data.response.venues[i].name.toUpperCase() == title.toUpperCase()) { // if ajax response venue is equal to marker title
-          getAjax(data.response.venues[i].id); // used to store into global variable temp
-        } else { // get first result
-          getAjax(data.response.venues[0].id);
-        }
+    url: foursquareURL
+  }).done(function(data) {
+    for (var i = 0; i < data.response.venues.length; i++) {
+      if (data.response.venues[i].name.toUpperCase() == title.toUpperCase()) { // if ajax response venue is equal to marker title
+        marker.fsID = data.response.venues[i].id;
+      } else {
+        marker.fsID = data.response.venues[0].id;
       }
-    },
-    error: function(jqXHR, timeout, errorThrown) {
-      console.log(jqXHR);
-      console.log(errorThrown);
     }
-  });
-  marker.fsID = temp; // marker's foursquareID
-}
+    version = 201310168;
+    intent = 'browse';
 
-function getFourSquareInfo(id, infowindow, marker) {
-  var apiURL = 'https://api.foursquare.com/v2/venues/';
-  var CLIENT_ID = 'ZDJME44NMAR2EQ4DOVZ4Y3ALRJEUWCZC0RBKXQ2KBE0N4EGX';
-  var CLIENT_SECRET = "UDCLN50BPLGYKMPYS2UZJGXGWOR0NYN5R00STZJPCUIBUFFA";
-  var version = 201310168;
-  var intent = 'browse';
+    foursquareURL = apiURL + marker.fsID + '?v=' + version + '&intent=' + intent + '&client_id=' + CLIENT_ID + '&client_secret=' + CLIENT_SECRET;
 
-  var foursquareURL = apiURL + id + '?v=' + version + '&intent=' + intent + '&client_id=' + CLIENT_ID + '&client_secret=' + CLIENT_SECRET;
-
-  $.ajax({
-    url: foursquareURL,
-    success: function(data) {
-      getAjax2(data.response.venue.shortUrl); // used to store into global variable temp2
-    },
-    error: function(jqXHR, e) {
+    $.ajax({
+      url: foursquareURL
+    }).done(function(data) {
+      if (data.response.venue.shortUrl === "") { // if shortUrl is empty
+        marker.fsText = "FourSquare location not found."; // give message that a location was not found
+      } else { // apply an anchor link to the shortUrl
+        marker.fsText = "<a href='" + data.response.venue.shortUrl +
+          "'>" + data.response.venue.shortUrl + '</a>';
+      }
+    }).fail(function(data) {
+      function handler(jqXHR, e) {
+        if (jqXHR.status == 404) // if shortURL cannot be found
+          alert('FourSquare location could not found. [404]');
+        else
+          alert('Unspecified error\n' + jqXHR.responseText);
+        }
+      });
+  }).fail(function(data) {
+    function handler(jqXHR, e) {
       if (jqXHR.status == 404) // if shortURL cannot be found
         alert('FourSquare location could not found. [404]');
       else
         alert('Unspecified error\n' + jqXHR.responseText);
-    }
-  });
-  if (temp2 === "") { // if temp2 is empty
-    temp2 = "FourSquare location not found." // give message that a location was not found
-    marker.fsText = temp2;
-    temp2 = ""; // in case infoWindow is applied twice to the same marker
-  } else { // apply an anchor link to the shortURL
-    marker.fsText = "<a href='" + temp2 +
-      "'>" + temp2 + '</a>';
-  }
+      }
+    });
 }
-
-// AJAX //
-
-function getAjax(obj) { // ajax calls to bring to global scope
-  temp = obj;
-}
-
-function getAjax2(obj) { // ajax calls to bring to global scope
-  temp2 = obj;
-}
-
 /**
  * Error callback for GMap API request
  */
