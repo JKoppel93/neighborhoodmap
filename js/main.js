@@ -98,10 +98,13 @@ var MyViewModel = function() { // contains knockout bindings
     google.maps.event.addListener(marker, 'click', function() { // add click listener for each marker present on the map
       populateInfoWindow(geocoder, markers[i], largeInfowindow); // which will then bring up the infowWindow
       markers[i].setAnimation(google.maps.Animation.BOUNCE); // animate active marker
-      var currentMarker = markers[i]; // double click protection
-      if (previousMarker && previousMarker !== currentMarker) // if a previousMarker is present or active marker is double clicked
-        previousMarker.setAnimation(null); // deactivate the marker animation
-      previousMarker = markers[i]; // store current marker into previousMarker for future clicks
+      for (let i = 0; i < markers.length; i++) {
+        if (markers[i].active === true) { // if a previous active marker is present
+          markers[i].setAnimation(null); // set previous marker animation to null
+          markers[i].active = false; // set its active value to false
+        }
+      }
+      markers[i].active = true;
     });
     markers.push(marker);
     markers[i].setMap(map);
