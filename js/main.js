@@ -119,10 +119,10 @@ var MyViewModel = function() { // contains knockout bindings
         markers[i].active = false; // set its active value to false
       }
       if (this.title == markers[i].title) { // if knockout click: event's title is equal to the title of the index marker's title in the array
-          toggleMarker(markers[i]);
+        toggleMarker(markers[i]);
       }
       bounds.extend(markers[i].position); // extend map to encapsulate markers
-        markers[i].active = true; // set marker active value to true
+      markers[i].active = true; // set marker active value to true
     }
 
     map.initialZoom = true; // set zoom level to intial value
@@ -210,28 +210,32 @@ function closeInfowWindow(geocoder, marker, infowindow) { // function used to cl
 function geocodeLatLng(position, geocoder, map, infowindow, title, marker) { // function used to convert latlng to string address
   var latlng = position;
   var contentString;
-  getFourSquare(latlng.lat(), latlng.lng(), title, marker); // gets foursquareID
-  geocoder.geocode({
-    'location': latlng
-  }, function(results, status) {
-    if (status === 'OK') {
-      if (results[0]) {
-        var streetviewURL = 'https://maps.googleapis.com/maps/api/streetview?size=320x240&location=' + latlng.lat() + "," + latlng.lng() + '&key=AIzaSyCUP0AwDXlaMWhMJX54WLgF-FsWA1CJO-Q&v=3'; // variable to obtain streetview
-        contentString = '<h2>' +
-          title +
-          '</h2>' +
-          '<div>' + // infowWindow string
-          results[0].formatted_address +
-          '<br>' +
-          "<img src='" + streetviewURL + "'>" + '<br>' + marker.fsText + '</div>';
+  getFourSquare(latlng.lat(), latlng.lng(), title, marker).always(function() { // gets foursquareID
+    geocoder.geocode({
+      'location': latlng
+    }, function(results, status) {
+      if (status === 'OK') {
+        if (results[0]) {
+          var streetviewURL = 'https://maps.googleapis.com/maps/api/streetview?size=320x240&location=' + latlng.lat() + "," + latlng.lng() + '&key=AIzaSyCUP0AwDXlaMWhMJX54WLgF-FsWA1CJO-Q&v=3'; // variable to obtain streetview
+          contentString = '<h2>' +
+            title +
+            '</h2>' +
+            '<div>' + // infowWindow string
+            results[0].formatted_address +
+            '<br>' +
+            "<img src='" + streetviewURL + "'>" + '<br>' + marker.fsText + '</div>';
+        }
       }
-    }
-    infowindow.setContent(contentString);
+      console.log("3 "+marker.fsID);
+      console.log("3 "+marker.fsText);
+      infowindow.setContent(contentString);
+    });
   });
 }
 
 // FOUR SQUARE //
 function getFourSquare(lat, lng, title, marker) {
+
   var apiURL = 'https://api.foursquare.com/v2/venues/';
   var latlng = lat + ',' + lng;
   var CLIENT_ID = 'ZDJME44NMAR2EQ4DOVZ4Y3ALRJEUWCZC0RBKXQ2KBE0N4EGX';
@@ -241,7 +245,7 @@ function getFourSquare(lat, lng, title, marker) {
 
   var foursquareURL = apiURL + 'search?v=' + version + '&ll=' + latlng + '&intent=' + intent + '&client_id=' + CLIENT_ID + '&client_secret=' + CLIENT_SECRET;
 
-  $.ajax({
+  return $.ajax({
     url: foursquareURL
   }).done(function(data) {
     for (var i = 0; i < data.response.venues.length; i++) {
@@ -255,8 +259,7 @@ function getFourSquare(lat, lng, title, marker) {
     intent = 'browse';
 
     foursquareURL = apiURL + marker.fsID + '?v=' + version + '&intent=' + intent + '&client_id=' + CLIENT_ID + '&client_secret=' + CLIENT_SECRET;
-
-    $.ajax({
+  $.ajax({
       url: foursquareURL
     }).done(function(data) {
       if (data.response.venue.shortUrl === "") { // if shortUrl is empty
@@ -264,34 +267,33 @@ function getFourSquare(lat, lng, title, marker) {
       } else { // apply an anchor link to the shortUrl
         marker.fsText = "<a href='" + data.response.venue.shortUrl +
           "'>" + data.response.venue.shortUrl + '</a>';
+          console.log("2 "+foursquareURL);
+          console.log("2 "+marker.fsID);
+          console.log("2 "+marker.fsText);
       }
     }).fail(function(data) {
-      function handler(jqXHR, e) {
-        if (jqXHR.status == 404) // if shortURL cannot be found
+        if (data.status == 404) // if shortURL cannot be found
           alert('FourSquare location could not found. [404]');
-        else if (jqXHR.status == 400)
+        else if (data.status == 400)
           alert('A request error was made. Try clicking again to resolve. [400]');
-        else if (jqXHR.status == 401 || jqXHR.status == 403)
-          alert('You are not authorized to make this request. [' + jqXHR.status + ']');
-        else if (jqXHR.status == 408)
+        else if (data.status == 401 || data.status == 403)
+          alert('You are not authorized to make this request. [' + data.status + ']');
+        else if (data.status == 408)
           alert('The request timed out. The request took too long to connect. [408]');
         else
-          alert('Unspecified error\n' + jqXHR.responseText);
-      }
+          alert('Unspecified error\n' + data.responseText);
     });
   }).fail(function(data) {
-    function handler(jqXHR, e) {
-      if (jqXHR.status == 404) // if shortURL cannot be found
+      if (data.status == 404) // if shortURL cannot be found
         alert('FourSquare location could not found. [404]');
-      else if (jqXHR.status == 400)
+      else if (data.status == 400)
         alert('A request error was made. Try clicking again to resolve. [400]');
-      else if (jqXHR.status == 401 || jqXHR.status == 403)
-        alert('You are not authorized to make this request. [' + jqXHR.status + ']');
-      else if (jqXHR.status == 408)
+      else if (data.status == 401 || data.status == 403)
+        alert('You are not authorized to make this request. [' + data.status + ']');
+      else if (data.status == 408)
         alert('The request timed out. The request took too long to connect. [408]');
       else
         alert('Unspecified error\n' + jqXHR.responseText);
-    }
   });
 }
 /**
