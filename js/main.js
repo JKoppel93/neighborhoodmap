@@ -226,8 +226,8 @@ function geocodeLatLng(position, geocoder, map, infowindow, title, marker) { // 
             "<img src='" + streetviewURL + "'>" + '<br>' + marker.fsText + '</div>';
         }
       }
-      console.log("3 "+marker.fsID);
-      console.log("3 "+marker.fsText);
+      console.log("1 "+marker.fsID);
+      console.log("1 "+marker.fsText);
       infowindow.setContent(contentString);
     });
   });
