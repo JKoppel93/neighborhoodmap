@@ -24,7 +24,6 @@ var MyViewModel = function() { // contains knockout bindings
 
   var visible = true; // for filteredLocations
   var active = false; // for animations
-  var init = -1; // for init purposes
 
   query = ko.observable('');
 
@@ -108,7 +107,6 @@ var MyViewModel = function() { // contains knockout bindings
     });
     markers.push(marker);
     markers[i].setMap(map);
-    markers[i].init = init;
     markers[i].active = active;
   }
 
@@ -121,17 +119,10 @@ var MyViewModel = function() { // contains knockout bindings
         markers[i].active = false; // set its active value to false
       }
       if (this.title == markers[i].title) { // if knockout click: event's title is equal to the title of the index marker's title in the array
-        if (markers[i].init !== -1) {
           toggleMarker(markers[i]);
-          markers[i].active = true; // set marker active value to true
-        } else {
-          markers[i].setAnimation(google.maps.Animation.BOUNCE); // reanimate
-          populateInfoWindow(geocoder, markers[i], largeInfowindow); // open infowindow
-          markers[i].init = 0; // remove initialization check
-          markers[i].active = true; // set marker active value to true
-        }
       }
       bounds.extend(markers[i].position); // extend map to encapsulate markers
+        markers[i].active = true; // set marker active value to true
     }
 
     map.initialZoom = true; // set zoom level to intial value
@@ -139,15 +130,15 @@ var MyViewModel = function() { // contains knockout bindings
   };
 
   toggleMarker = function(mark) { // used to toggle between visible and invisible markers when clicking on location text
-    var x = mark.visible; // initial marker visible boolean value
+    var x = mark.active; // initial marker visible boolean value
     if (x === true) {
-      mark.setVisible(false); // set marker visible boolean to false, used for conditionals
       mark.setAnimation(null); // remove animation
       closeInfowWindow(geocoder, mark, largeInfowindow);
+      mark.active = false;
     } else if (x === false) {
-      mark.setVisible(true); // set marker visible boolean to true, used for conditionals
       mark.setAnimation(google.maps.Animation.BOUNCE); // reanimate
       populateInfoWindow(geocoder, mark, largeInfowindow); // open infowindow
+      mark.active = false;
     }
   };
 
