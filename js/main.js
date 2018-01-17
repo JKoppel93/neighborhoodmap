@@ -81,7 +81,7 @@ var MyViewModel = function() { // contains knockout bindings
 
   // MARKERS //
 
-  for (let i = 0; i < locations().length; i++) { // loop will create Google Marker variables and push them into the markers array
+  for (let i = 0, len = locations().length; i < len; i++) { // loop will create Google Marker variables and push them into the markers array
     var position = locations()[i].location;
     var title = locations()[i].title;
     var previousMarker;
@@ -210,26 +210,18 @@ function closeInfowWindow(geocoder, marker, infowindow) { // function used to cl
 function geocodeLatLng(position, geocoder, map, infowindow, title, marker) { // function used to convert latlng to string address
   var latlng = position;
   var contentString;
-  getFourSquare(latlng.lat(), latlng.lng(), title, marker).always(function() { // gets foursquareID
-    geocoder.geocode({
-      'location': latlng
-    }, function(results, status) {
-      if (status === 'OK') {
-        if (results[0]) {
-          var streetviewURL = 'https://maps.googleapis.com/maps/api/streetview?size=320x240&location=' + latlng.lat() + "," + latlng.lng() + '&key=AIzaSyCUP0AwDXlaMWhMJX54WLgF-FsWA1CJO-Q&v=3'; // variable to obtain streetview
-          contentString = '<h2>' +
-            title +
-            '</h2>' +
-            '<div>' + // infowWindow string
-            results[0].formatted_address +
-            '<br>' +
-            "<img src='" + streetviewURL + "'>" + '<br>' + marker.fsText + '</div>';
-        }
+  getFourSquare(latlng.lat(), latlng.lng(), title, marker); // gets foursquareID
+  geocoder.geocode({
+    'location': latlng
+  }, function(results, status) {
+    if (status === 'OK') {
+      if (results[0]) {
+        var streetviewURL = 'https://maps.googleapis.com/maps/api/streetview?size=320x240&location=' + latlng.lat() + "," + latlng.lng() + '&key=AIzaSyCUP0AwDXlaMWhMJX54WLgF-FsWA1CJO-Q&v=3'; // variable to obtain streetview
+        var formattedAddress = results[0].formatted_address;
+        contentString = getContent(title, formattedAddress, streetviewURL, marker);
       }
-      console.log("1 "+marker.fsID);
-      console.log("1 "+marker.fsText);
-      infowindow.setContent(contentString);
-    });
+    }
+    infowindow.setContent(contentString, title, marker);
   });
 }
 
@@ -245,21 +237,26 @@ function getFourSquare(lat, lng, title, marker) {
 
   var foursquareURL = apiURL + 'search?v=' + version + '&ll=' + latlng + '&intent=' + intent + '&client_id=' + CLIENT_ID + '&client_secret=' + CLIENT_SECRET;
 
-  return $.ajax({
-    url: foursquareURL
-  }).done(function(data) {
-    for (var i = 0; i < data.response.venues.length; i++) {
-      if (data.response.venues[i].name.toUpperCase() == title.toUpperCase()) { // if ajax response venue is equal to marker title
-        marker.fsID = data.response.venues[i].id;
-      } else {
-        marker.fsID = data.response.venues[0].id;
+  fetch(foursquareURL, {
+    method: 'get'
+  }).then(function(data) {
+    $.ajax({
+      url: data.url
+    }).done(function(data) {
+      for (var i = 0; i < data.response.venues.length; i++) {
+        if (data.response.venues[i].name.toUpperCase() == title.toUpperCase()) { // if ajax response venue is equal to marker title
+          marker.fsID = data.response.venues[i].id;
+        } else {
+          marker.fsID = data.response.venues[0].id;
+        }
       }
-    }
+    });
+
     version = 201310168;
     intent = 'browse';
 
     foursquareURL = apiURL + marker.fsID + '?v=' + version + '&intent=' + intent + '&client_id=' + CLIENT_ID + '&client_secret=' + CLIENT_SECRET;
-  $.ajax({
+    $.ajax({
       url: foursquareURL
     }).done(function(data) {
       if (data.response.venue.shortUrl === "") { // if shortUrl is empty
@@ -267,23 +264,8 @@ function getFourSquare(lat, lng, title, marker) {
       } else { // apply an anchor link to the shortUrl
         marker.fsText = "<a href='" + data.response.venue.shortUrl +
           "'>" + data.response.venue.shortUrl + '</a>';
-          console.log("2 "+foursquareURL);
-          console.log("2 "+marker.fsID);
-          console.log("2 "+marker.fsText);
       }
     }).fail(function(data) {
-        if (data.status == 404) // if shortURL cannot be found
-          alert('FourSquare location could not found. [404]');
-        else if (data.status == 400)
-          alert('A request error was made. Try clicking again to resolve. [400]');
-        else if (data.status == 401 || data.status == 403)
-          alert('You are not authorized to make this request. [' + data.status + ']');
-        else if (data.status == 408)
-          alert('The request timed out. The request took too long to connect. [408]');
-        else
-          alert('Unspecified error\n' + data.responseText);
-    });
-  }).fail(function(data) {
       if (data.status == 404) // if shortURL cannot be found
         alert('FourSquare location could not found. [404]');
       else if (data.status == 400)
@@ -293,9 +275,38 @@ function getFourSquare(lat, lng, title, marker) {
       else if (data.status == 408)
         alert('The request timed out. The request took too long to connect. [408]');
       else
-        alert('Unspecified error\n' + jqXHR.responseText);
+        alert('Unspecified error\n' + data.responseText);
+    });
+  }).catch(function(data) {
+    if (data.status == 404) // if shortURL cannot be found
+      alert('FourSquare location could not found. [404]');
+    else if (data.status == 400)
+      alert('A request error was made. Try clicking again to resolve. [400]');
+    else if (data.status == 401 || data.status == 403)
+      alert('You are not authorized to make this request. [' + data.status + ']');
+    else if (data.status == 408)
+      alert('The request timed out. The request took too long to connect. [408]');
+    else
+      alert('Unspecified error\n' + data.responseText);
   });
 }
+
+function getContent(title, address, url, marker) {
+  var fsText;
+  if (marker.fsText === undefined) {
+    fsText = "Loading...";
+  } else {
+    fsText = marker.fsText;
+  }
+  return '<h2>' +
+    title +
+    '</h2>' +
+    '<div>' + // infowWindow string
+    address +
+    '<br>' +
+    "<img src='" + url + "'>" + '<br>' + fsText + '</div>';
+}
+
 /**
  * Error callback for GMap API request
  */
