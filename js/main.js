@@ -237,21 +237,21 @@ function getFourSquare(lat, lng, title, marker) {
 
   var foursquareURL = apiURL + 'search?v=' + version + '&ll=' + latlng + '&intent=' + intent + '&client_id=' + CLIENT_ID + '&client_secret=' + CLIENT_SECRET;
 
+  $.ajax({
+    url: foursquareURL
+  }).done(function(data) {
+    for (var i = 0; i < data.response.venues.length; i++) {
+      if (data.response.venues[i].name.toUpperCase() == title.toUpperCase()) { // if ajax response venue is equal to marker title
+        marker.fsID = data.response.venues[i].id;
+      } else {
+        marker.fsID = data.response.venues[0].id;
+      }
+    }
+  });
+
   fetch(foursquareURL, {
     method: 'get'
   }).then(function(data) {
-    $.ajax({
-      url: data.url
-    }).done(function(data) {
-      for (var i = 0; i < data.response.venues.length; i++) {
-        if (data.response.venues[i].name.toUpperCase() == title.toUpperCase()) { // if ajax response venue is equal to marker title
-          marker.fsID = data.response.venues[i].id;
-        } else {
-          marker.fsID = data.response.venues[0].id;
-        }
-      }
-    });
-
     version = 201310168;
     intent = 'browse';
 
