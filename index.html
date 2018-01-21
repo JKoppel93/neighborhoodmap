@@ -1,16 +1,17 @@
 <html>
-<!DOCTYPE html>
 <head>
+  <title>Neighborhood Map</title>
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="css\main.css">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" >
 </head>
 
 <body>
   <main>
     <div class="row" id="row-main">
       <div id="header" class=col-md-12>
-        <a href="" id="hamburger" data-bind="click: togglePanel">&#9776</a>
+        <a href="" id="hamburger" data-bind="click: togglePanel">&#9776;</a>
       </div>
       <div id="panel" class="collapsed">
         <h2>Spotswood Locations</h2>
@@ -30,11 +31,11 @@
       <div id="map" class="col-md-12"></div>
     </div>
   </main>
-  <script src="js\jquery-3.2.1.min.js"></script>
-  <script src="js\knockout.min.js"></script>
+  <script src="js/jquery-3.2.1.min.js"></script>
+  <script src="js/knockout.min.js"></script>
   <script src="js/umd/popper.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
-  <script src="js\main.js"></script>
+  <script src="js/main.js"></script>
   <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCUP0AwDXlaMWhMJX54WLgF-FsWA1CJO-Q&v=3&callback=initMap" onerror="googleError()">
   </script>
 </body>

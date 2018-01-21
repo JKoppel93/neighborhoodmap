@@ -240,44 +240,47 @@ function getFourSquare(lat, lng, title, marker) {
   $.ajax({
     url: foursquareURL
   }).done(function(data) {
-    for (var i = 0; i < data.response.venues.length; i++) {
-      if (data.response.venues[i].name.toUpperCase() == title.toUpperCase()) { // if ajax response venue is equal to marker title
-        marker.fsID = data.response.venues[i].id;
-      } else {
-        marker.fsID = data.response.venues[0].id;
+    fetch(foursquareURL, {
+      method: 'get'
+    }).then(function() {
+      for (var i = 0; i < data.response.venues.length; i++) {
+        if (data.response.venues[i].name.toUpperCase() == title.toUpperCase()) { // if ajax response venue is equal to marker title
+          marker.fsID = data.response.venues[i].id;
+        } else {
+          marker.fsID = data.response.venues[0].id;
+        }
       }
-    }
-  });
+      version = 201310168;
+      intent = 'browse';
+      foursquareURL = apiURL + marker.fsID + '?v=' + version + '&intent=' + intent + '&client_id=' + CLIENT_ID + '&client_secret=' + CLIENT_SECRET;
 
-  fetch(foursquareURL, {
-    method: 'get'
-  }).then(function(data) {
-    version = 201310168;
-    intent = 'browse';
-
-    foursquareURL = apiURL + marker.fsID + '?v=' + version + '&intent=' + intent + '&client_id=' + CLIENT_ID + '&client_secret=' + CLIENT_SECRET;
-    $.ajax({
-      url: foursquareURL
-    }).done(function(data) {
-      if (data.response.venue.shortUrl === "") { // if shortUrl is empty
-        marker.fsText = "FourSquare location not found."; // give message that a location was not found
-      } else { // apply an anchor link to the shortUrl
-        marker.fsText = "<a href='" + data.response.venue.shortUrl +
-          "'>" + data.response.venue.shortUrl + '</a>';
-      }
-    }).fail(function(data) {
-      if (data.status == 404) // if shortURL cannot be found
-        alert('FourSquare location could not found. [404]');
-      else if (data.status == 400)
-        alert('A request error was made. Try clicking again to resolve. [400]');
-      else if (data.status == 401 || data.status == 403)
-        alert('You are not authorized to make this request. [' + data.status + ']');
-      else if (data.status == 408)
-        alert('The request timed out. The request took too long to connect. [408]');
-      else
-        alert('Unspecified error\n' + data.responseText);
+      $.ajax({
+        url: foursquareURL
+      }).done(function(data) {
+        fetch(foursquareURL, {
+          method: 'get'
+        }).then(function() {
+          if (data.response.venue.shortUrl === "") { // if shortUrl is empty
+            marker.fsText = "FourSquare location not found."; // give message that a location was not found
+          } else { // apply an anchor link to the shortUrl
+            marker.fsText = "<a href='" + data.response.venue.shortUrl +
+              "'>" + data.response.venue.shortUrl + '</a>';
+          }
+        });
+      }).fail(function(data) {
+        if (data.status == 404) // if shortURL cannot be found
+          alert('FourSquare location could not found. [404]');
+        else if (data.status == 400)
+          alert('A request error was made. Try clicking again to resolve. [400]');
+        else if (data.status == 401 || data.status == 403)
+          alert('You are not authorized to make this request. [' + data.status + ']');
+        else if (data.status == 408)
+          alert('The request timed out. The request took too long to connect. [408]');
+        else
+          alert('Unspecified error\n' + data.responseText);
+      });
     });
-  }).catch(function(data) {
+  }).fail(function(data) {
     if (data.status == 404) // if shortURL cannot be found
       alert('FourSquare location could not found. [404]');
     else if (data.status == 400)
