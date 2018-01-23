@@ -29,4 +29,9 @@ A map will be displayed using Google Map's API. Use the panel icon to toggle the
 
 == CREDITS ==
 
-*Author - Jacob Koppel *Modified code used from Google Maps API documentation and previous Udacity lessons. *filterLocations function in main.js modified from Stack Overflow. *Bootstrap, Knockout, and jQuery for backend framework to project
+*Author - Jacob Koppel
+*Tips and debugging - Viraj-3 from Udacity Forums
+*Modified code used from Google Maps API documentation and previous Udacity lessons.
+*filterLocations function in main.js modified from Stack Overflow.
+*Bootstrap, Knockout, and jQuery for backend framework to project
+*Loading gif from giphy

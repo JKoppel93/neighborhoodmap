@@ -2,9 +2,13 @@ var map; // map variable
 var query; // search query for filtering locations
 var filteredLocations = ko.observableArray(); // array of temporary locations
 var markers = []; // array of location markers
+var infoTemplate = '<h2 id="infoTitle">Title</h2>' +
+  '<div><span id="infoAddress">loading..</span><br>' +
+  '<img id="infoImage" src="img/loading.gif"/><br><a id="foursquareAnchor">Loading..</a></div>'; // credit to Viraj-3 for the template idea
+var largeInfowindow;
 
 function initMap() { // initialize map function
-
+  largeInfowindow = new google.maps.InfoWindow(); // new infowindow instance
   map = new google.maps.Map(document.getElementById('map'), { // will create new map instance, center map on Spotswood, NJ with zoom level 15
     zoom: 15,
     center: {
@@ -19,8 +23,6 @@ function initMap() { // initialize map function
 var MyViewModel = function() { // contains knockout bindings
 
   var geocoder = new google.maps.Geocoder(); // used for geocoding google map API
-
-  var largeInfowindow = new google.maps.InfoWindow(); // new infowindow instance
 
   var visible = true; // for filteredLocations
   var active = false; // for animations
@@ -151,8 +153,6 @@ var MyViewModel = function() { // contains knockout bindings
   };
 
   filterLocations = function() { // function used to take search query and apply it to a filter for the marker locations
-    // var address = this.value;
-    // Declare variables
     var filter, a;
     filter = query().toUpperCase(); // search query converted to all caps to ensure stability
 
@@ -191,10 +191,12 @@ var MyViewModel = function() { // contains knockout bindings
 
 function populateInfoWindow(geocoder, marker, infowindow) { // function used to create infowindow
   // Check to make sure the infowindow is not already opened on this marker.
-  if (infowindow.marker != marker) {
-    infowindow.marker = marker;
-    geocodeLatLng(marker.position, geocoder, map, infowindow, marker.title, marker);
+  if (largeInfowindow.marker != marker) {
+    largeInfowindow.setContent(infoTemplate);
     infowindow.open(map, marker);
+    $('#infoTitle').html(marker.title);
+    geocodeLatLng(geocoder, marker);
+
     // Make sure the marker property is cleared if the infowindow is closed.
     infowindow.addListener('closeclick', function() {
       infowindow.marker = null;
@@ -207,10 +209,10 @@ function closeInfowWindow(geocoder, marker, infowindow) { // function used to cl
   infowindow.close();
 }
 
-function geocodeLatLng(position, geocoder, map, infowindow, title, marker) { // function used to convert latlng to string address
-  var latlng = position;
+function geocodeLatLng(geocoder, marker) { // function used to convert latlng to string address
+  var latlng = marker.position;
   var contentString;
-  getFourSquare(latlng.lat(), latlng.lng(), title, marker); // gets foursquareID
+  getFourSquare(latlng.lat(), latlng.lng(), marker.title, marker); // gets foursquareID
   geocoder.geocode({
     'location': latlng
   }, function(results, status) {
@@ -218,10 +220,10 @@ function geocodeLatLng(position, geocoder, map, infowindow, title, marker) { // 
       if (results[0]) {
         var streetviewURL = 'https://maps.googleapis.com/maps/api/streetview?size=320x240&location=' + latlng.lat() + "," + latlng.lng() + '&key=AIzaSyCUP0AwDXlaMWhMJX54WLgF-FsWA1CJO-Q&v=3'; // variable to obtain streetview
         var formattedAddress = results[0].formatted_address;
-        contentString = getContent(title, formattedAddress, streetviewURL, marker);
+        $('#infoAddress').html(formattedAddress); // append formattedAddress to address line in infowindow
+        $('#infoImage').attr('src', streetviewURL); // append streetviewURL's image
       }
     }
-    infowindow.setContent(contentString, title, marker);
   });
 }
 
@@ -264,6 +266,8 @@ function getFourSquare(lat, lng, title, marker) {
       } else { // apply an anchor link to the shortUrl
         marker.fsText = "<a href='" + json.response.venue.shortUrl +
           "'>" + json.response.venue.shortUrl + '</a>';
+        $('#foursquareAnchor').attr('href', marker.fsText);
+        $('#foursquareAnchor').html(marker.fsText);
       }
     }).catch(function(data) {
       if (data.status == 404) // if shortURL cannot be found
@@ -288,23 +292,7 @@ function getFourSquare(lat, lng, title, marker) {
       alert('The request timed out. The request took too long to connect. [408]');
     else
       alert('Unspecified error\n' + data.responseText);
-    });
-}
-
-function getContent(title, address, url, marker) {
-  var fsText;
-  if (marker.fsText === undefined) {
-    fsText = "Loading...";
-  } else {
-    fsText = marker.fsText;
-  }
-  return '<h2>' +
-    title +
-    '</h2>' +
-    '<div>' + // infowWindow string
-    address +
-    '<br>' +
-    "<img src='" + url + "'>" + '<br>' + fsText + '</div>';
+  });
 }
 
 /**
