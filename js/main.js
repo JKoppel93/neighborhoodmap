@@ -2,10 +2,9 @@ var map; // map variable
 var query; // search query for filtering locations
 var filteredLocations = ko.observableArray(); // array of temporary locations
 var markers = []; // array of location markers
-var infoTemplate = '<h2 id="infoTitle">Title</h2>' +
-  '<div><span id="infoAddress">loading..</span><br>' +
-  '<img id="infoImage" src="img/loading.gif"/><br><a id="foursquareAnchor">Loading..</a></div>'; // credit to Viraj-3 for the template idea
+var infoTemplate;
 var largeInfowindow;
+
 
 function initMap() { // initialize map function
   largeInfowindow = new google.maps.InfoWindow(); // new infowindow instance
@@ -157,7 +156,7 @@ var MyViewModel = function() { // contains knockout bindings
     filter = query().toUpperCase(); // search query converted to all caps to ensure stability
 
     // Loop through all list items, and hide those who don't match the search query
-    for (i = 0; i < locations().length; i++) {
+    for (var i = 0, len = locations().length; i < len; i++) {
       a = filteredLocations()[i].title;
       if (a.toUpperCase().indexOf(filter) > -1) { // keep location in list display
         filteredLocations()[i].isVisible(true); // if filtered locations are visible in panel
@@ -192,9 +191,11 @@ var MyViewModel = function() { // contains knockout bindings
 function populateInfoWindow(geocoder, marker, infowindow) { // function used to create infowindow
   // Check to make sure the infowindow is not already opened on this marker.
   if (largeInfowindow.marker != marker) {
+    infoTemplate = '<h2 id="infoTitle">' + marker.title + '</h2>' +
+      '<div><span id="infoAddress">loading..</span><br>' +
+      '<img id="infoImage" src="img/loading.gif"/><br><a id="foursquareAnchor">Loading..</a></div>'; // credit to Viraj-3 for the template idea
     largeInfowindow.setContent(infoTemplate);
     infowindow.open(map, marker);
-    $('#infoTitle').html(marker.title);
     geocodeLatLng(geocoder, marker);
 
     // Make sure the marker property is cleared if the infowindow is closed.
@@ -220,8 +221,10 @@ function geocodeLatLng(geocoder, marker) { // function used to convert latlng to
       if (results[0]) {
         var streetviewURL = 'https://maps.googleapis.com/maps/api/streetview?size=320x240&location=' + latlng.lat() + "," + latlng.lng() + '&key=AIzaSyCUP0AwDXlaMWhMJX54WLgF-FsWA1CJO-Q&v=3'; // variable to obtain streetview
         var formattedAddress = results[0].formatted_address;
-        $('#infoAddress').html(formattedAddress); // append formattedAddress to address line in infowindow
-        $('#infoImage').attr('src', streetviewURL); // append streetviewURL's image
+        infoTemplate = '<h2 id="infoTitle">' + marker.title + '</h2>' +
+          '<div><span id="infoAddress">' + formattedAddress +
+          '<br><img id="infoImage" src='+ streetviewURL +'/><br><a id="foursquareAnchor">Loading..</a></div>';
+        largeInfowindow.setContent(infoTemplate);
       }
     }
   });
@@ -279,7 +282,7 @@ function getFourSquare(lat, lng, title, marker) {
       else if (data.status == 408)
         alert('The request timed out. The request took too long to connect. [408]');
       else
-        alert('Unspecified error\n' + data.responseText);
+        alert('Unspecified error');
     });
   }).catch(function(data) {
     if (data.status == 404) // if shortURL cannot be found
@@ -291,7 +294,7 @@ function getFourSquare(lat, lng, title, marker) {
     else if (data.status == 408)
       alert('The request timed out. The request took too long to connect. [408]');
     else
-      alert('Unspecified error\n' + data.responseText);
+      alert('Unspecified error');
   });
 }
 
