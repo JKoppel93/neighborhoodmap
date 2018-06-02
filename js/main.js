@@ -223,7 +223,8 @@ function geocodeLatLng(geocoder, marker) { // function used to convert latlng to
         var formattedAddress = results[0].formatted_address;
         infoTemplate = '<h2 id="infoTitle">' + marker.title + '</h2>' +
           '<div><span id="infoAddress">' + formattedAddress +
-          '<br><img id="infoImage" src='+ streetviewURL +'/><br><a id="foursquareAnchor">Loading..</a></div>';
+          '<br><img id="infoImage" src='+ streetviewURL +
+          '/><br><a id="foursquareAnchor">Loading..</a></div>';
         largeInfowindow.setContent(infoTemplate);
       }
     }
@@ -269,8 +270,7 @@ function getFourSquare(lat, lng, title, marker) {
       } else { // apply an anchor link to the shortUrl
         marker.fsText = "<a href='" + json.response.venue.shortUrl +
           "'>" + json.response.venue.shortUrl + '</a>';
-        $('#foursquareAnchor').attr('href', marker.fsText);
-        $('#foursquareAnchor').html(marker.fsText);
+        infoTemplate = largeInfowindow.content.replace('<a id="foursquareAnchor">Loading..</a>', marker.fsText); // required to keep formattedAddress and streetviewURL content from previous function, replaces "loading..." text with marker.fsText link
       }
     }).catch(function(data) {
       if (data.status == 404) // if shortURL cannot be found
