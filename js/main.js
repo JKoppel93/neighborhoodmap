@@ -131,8 +131,8 @@ var MyViewModel = function() { // contains knockout bindings
   };
 
   toggleMarker = function(mark) { // used to toggle between visible and invisible markers when clicking on location text
-    var x = mark.active; // initial marker visible boolean value
-    if (x === true) {
+    var isActive = mark.active; // initial marker visible boolean value
+    if (isActive === true) {
       mark.setAnimation(null); // remove animation
       closeInfowWindow(geocoder, mark, largeInfowindow);
       mark.active = false;
